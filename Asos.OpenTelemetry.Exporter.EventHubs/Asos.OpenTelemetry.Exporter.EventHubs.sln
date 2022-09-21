@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asos.OpenTelemetry.Exporter.EventHubs", "Asos.OpenTelemetry.Exporter.EventHubs\Asos.OpenTelemetry.Exporter.EventHubs.csproj", "{675C23EE-2C0D-4628-9110-58E60F84C4B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asos.OpenTelemetry.Exporter.EventHubs.Tests", "Asos.OpenTelemetry.Exporter.EventHubs.Tests\Asos.OpenTelemetry.Exporter.EventHubs.Tests.csproj", "{7D0E4AD3-EC94-490F-9674-BC0F28234324}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{675C23EE-2C0D-4628-9110-58E60F84C4B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{675C23EE-2C0D-4628-9110-58E60F84C4B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{675C23EE-2C0D-4628-9110-58E60F84C4B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{675C23EE-2C0D-4628-9110-58E60F84C4B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D0E4AD3-EC94-490F-9674-BC0F28234324}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D0E4AD3-EC94-490F-9674-BC0F28234324}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D0E4AD3-EC94-490F-9674-BC0F28234324}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D0E4AD3-EC94-490F-9674-BC0F28234324}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
