@@ -5,6 +5,10 @@ namespace Asos.OpenTelemetry.Exporter.EventHubs;
 /// </summary>
 public class EventHubOptions
 {
+    /// <summary>
+    /// The authentication mode to use when sending data to Event Hub. Can be either Share Access Signature,
+    /// or Managed Identity
+    /// </summary>
     public AuthenticationMode AuthenticationMode { get; set; } = AuthenticationMode.SasKey;
 
     /// <summary>
@@ -54,13 +58,9 @@ public class EventHubOptions
                 "When authentication mode is SasKey, you must provide values for KeyName, AccessKey and EventHubFqdn");
         }
         
-        if (!Uri.IsWellFormedUriString(EventHubFqdn, UriKind.Absolute))
-        {
-            throw new InvalidOperationException(
-                "When authentication mode is ManagedIdentity, you must provide a well formed URI for EventHubFqdn");  
-        }
+        ValidateEventHubTarget();
     }
-
+    
     private void ValidateManagedIdentityMode()
     {
         if (string.IsNullOrEmpty(EventHubFqdn))
@@ -69,10 +69,15 @@ public class EventHubOptions
                 "When authentication mode is ManagedIdentity, you must provide a value for EventHubFqdn");
         }
 
+        ValidateEventHubTarget();
+    }
+    
+    private void ValidateEventHubTarget()
+    {
         if (!Uri.IsWellFormedUriString(EventHubFqdn, UriKind.Absolute))
         {
             throw new InvalidOperationException(
-                "When authentication mode is ManagedIdentity, you must provide a well formed URI for EventHubFqdn");  
+                "You must provide a well formed URI for EventHubFqdn");  
         }
     }
 }

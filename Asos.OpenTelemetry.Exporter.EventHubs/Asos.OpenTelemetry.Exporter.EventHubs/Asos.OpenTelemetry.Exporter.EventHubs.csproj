@@ -15,7 +15,8 @@
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageIcon>otel_icon.png</PackageIcon>
         <PackageIconUrl />
-        <PackageReadmeFile>README.md</PackageReadmeFile>        
+        <PackageReadmeFile>README.md</PackageReadmeFile>  
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>        
     </PropertyGroup>
 
     <ItemGroup>
