@@ -1,0 +1,81 @@
+trigger: none
+
+pool:
+  vmImage: windows-latest
+
+variables:
+  major: '0'
+  minor: '1'
+  revision: $[counter(variables['minor'], 1)] 
+  nugetVersion: '$(major).$(minor).$(revision)'
+  
+stages:
+- stage: build
+  displayName: Build
+  jobs:
+  - job: Build
+    pool:
+      vmImage: windows-latest
+    steps:          
+      - task: DotNetCoreCLI@2
+        inputs:
+          command: "restore"
+          projects: |
+            **/*.csproj
+          feedsToUse: "select"
+          includeNuGetOrg: true
+        displayName: Dotnet Restore
+
+      - task: DotNetCoreCLI@2
+        inputs:
+          command: "test"
+          projects: |
+            **/*.csproj
+        displayName: Build
+
+      - task: DotNetCoreCLI@2
+        inputs:
+          command: "pack"
+          versioningScheme: byEnvVar
+          versionEnvVar: nugetVersion
+          packDestination: $(Build.ArtifactStagingDirectory)/package
+          arguments: "-o $(Build.ArtifactStagingDirectory)/package"
+          projects: |
+            **/*.csproj
+        displayName: Package 
+        
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          ArtifactName: 'drop'
+          publishLocation: 'Container'
+        displayName: Publish Build Artifacts        
+
+- stage: Deploy
+  displayName: Deploy
+  jobs:
+  - job: Deploy
+    condition: 
+        or(
+           in(variables['Build.SourceBranch'], 'refs/heads/main'), 
+           in(variables['Build.Reason'], 'Manual')
+        )  
+    pool:
+      vmImage: windows-latest 
+    steps:
+      - task: DownloadBuildArtifacts@0
+        displayName: 'Download artifacts'
+        inputs:
+          buildType: 'current'
+          downloadType: 'single'
+          artifactName: 'drop'
+          itemPattern: 
+          downloadPath: '$(System.ArtifactsDirectory)'   
+      - task: NuGetCommand@2
+        displayName: Publish package to nuget.org using ASOS organisation account
+        inputs:
+          command: 'push'
+          packagesToPush: '$(System.ArtifactsDirectory)/drop/*.nupkg;!$(System.ArtifactsDirectory)/drop/*.symbols.nupkg'
+          nuGetFeedType: 'external'
+          publishFeedCredentials: 'ASOS nuget.org feed'
+
