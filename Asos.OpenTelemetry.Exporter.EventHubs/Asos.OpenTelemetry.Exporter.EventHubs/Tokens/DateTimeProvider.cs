@@ -1,6 +1,6 @@
 namespace Asos.OpenTelemetry.Exporter.EventHubs.Tokens;
 
-public static class SystemTime
+internal static class SystemTime
 {
     internal static Func<DateTime> UtcNow = () => DateTime.UtcNow;
 
