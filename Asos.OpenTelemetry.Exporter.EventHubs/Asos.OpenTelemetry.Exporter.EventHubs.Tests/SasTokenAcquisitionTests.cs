@@ -31,10 +31,10 @@ public class SasTokenAcquisitionTests
         var tokenAcquisition = new SasTokenAcquisition();
 
         var accessToken = tokenAcquisition.GetToken(new EventHubOptions
-            {AccessKey = "test", KeyName = "Sender", EventHubFqdn = "https://my-resource"});
+            {AccessKey = "test", KeyName = "Sender", EventHubFqdn = "https://my-resource", AuthenticationMode = AuthenticationMode.SasKey});
 
         var expected =
-            "SharedAccessSignature sr=https%3A%2F%2Fmy-resource&sig=9GN48obx4qmr8AnCbslsNx8nij25uqayZnK7Aur%2FjjQ%3D&se=1624368600&skn=Sender";
+            "sr=https%3A%2F%2Fmy-resource&sig=9GN48obx4qmr8AnCbslsNx8nij25uqayZnK7Aur%2FjjQ%3D&se=1624368600&skn=Sender";
         Assert.AreEqual(expected, accessToken.Token);
     }
     
@@ -50,7 +50,7 @@ public class SasTokenAcquisitionTests
             {AccessKey = "test", KeyName = "Sender", EventHubFqdn = "https://my-resource"});
 
         var expected =
-            "SharedAccessSignature sr=https%3A%2F%2Fmy-resource&sig=9GN48obx4qmr8AnCbslsNx8nij25uqayZnK7Aur%2FjjQ%3D&se=1624368600&skn=Sender";
+            "sr=https%3A%2F%2Fmy-resource&sig=9GN48obx4qmr8AnCbslsNx8nij25uqayZnK7Aur%2FjjQ%3D&se=1624368600&skn=Sender";
         Assert.AreEqual(expected, accessToken.Token);
     }
 }

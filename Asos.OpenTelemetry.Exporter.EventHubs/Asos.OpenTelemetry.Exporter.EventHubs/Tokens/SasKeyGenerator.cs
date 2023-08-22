@@ -19,7 +19,7 @@ internal class SasKeyGenerator
         var stringToSign = WebUtility.UrlEncode(resourceUri) + "\n" + expiry;
         var signature = GetSignature(key, stringToSign);
 
-        var token = string.Format(CultureInfo.InvariantCulture, "SharedAccessSignature sr={0}&sig={1}&se={2}&skn={3}",
+        var token = string.Format(CultureInfo.InvariantCulture, "sr={0}&sig={1}&se={2}&skn={3}",
             WebUtility.UrlEncode(resourceUri), WebUtility.UrlEncode(signature), expiry, keyName);
 
         var offset = new DateTimeOffset(tokenGenerationTime);

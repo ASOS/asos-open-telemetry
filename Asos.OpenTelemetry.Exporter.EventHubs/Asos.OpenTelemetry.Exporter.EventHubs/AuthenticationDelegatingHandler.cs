@@ -37,13 +37,10 @@ internal class AuthenticationDelegatingHandler : DelegatingHandler
 
     private void SetRequestHeader(HttpRequestMessage request, string token)
     {
-        if (_eventHubOptions.AuthenticationMode == AuthenticationMode.SasKey)
-        {
-            request.Headers.Add("Authorization", token);
-        }
-        else
-        {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        }
+        var scheme = _eventHubOptions.AuthenticationMode == AuthenticationMode.SasKey
+            ? "SharedAccessSignature"
+            : "Bearer";
+        
+        request.Headers.Authorization = new AuthenticationHeaderValue(scheme, token);
     }
 }

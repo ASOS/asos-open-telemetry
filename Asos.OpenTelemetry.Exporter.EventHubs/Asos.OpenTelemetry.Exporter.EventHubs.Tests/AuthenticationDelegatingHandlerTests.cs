@@ -12,10 +12,11 @@ namespace Asos.OpenTelemetry.Exporter.EventHubs.Tests;
 
 public class AuthenticationDelegatingHandlerTests
 {
-    [Test]
-    public void Send_Sets_Sas_Authentication_Header()
+    [TestCase(AuthenticationMode.SasKey, "SharedAccessSignature test-token")]
+    [TestCase(AuthenticationMode.ManagedIdentity, "Bearer test-token")]
+    public void Send_Sets_Sas_Authentication_Header(AuthenticationMode mode, string expected)
     {
-        var opts = new EventHubOptions(){AuthenticationMode = AuthenticationMode.SasKey};
+        var opts = new EventHubOptions(){AuthenticationMode = mode};
         
         var tokenMock = new Mock<IAuthenticationTokenAcquisition>();
         tokenMock.Setup(s => s.GetToken(opts))
@@ -28,28 +29,9 @@ public class AuthenticationDelegatingHandlerTests
 
         var authHeader = MakeRequestAndGetAuthHeaders(httpClient);
         
-        Assert.AreEqual("test-token", authHeader[0]);
+        Assert.AreEqual(expected, authHeader[0]);
     }
     
-    [Test]
-    public void Send_Sets_Managed_Identity_Authentication_Header()
-    {
-        var opts = new EventHubOptions(){AuthenticationMode = AuthenticationMode.ManagedIdentity};
-        
-        var tokenMock = new Mock<IAuthenticationTokenAcquisition>();
-        tokenMock.Setup(s => s.GetToken(opts))
-            .Returns(new AccessToken("test-token", DateTimeOffset.Now.AddMinutes(5)));
-        
-        var tokenCache = new TokenCache(opts, tokenMock.Object);
-        
-        var httpClient =
-            new HttpClient(new AuthenticationDelegatingHandler(new DummyHandler(), tokenCache, opts));
-        
-        var authHeader = MakeRequestAndGetAuthHeaders(httpClient);
-        
-        Assert.AreEqual("Bearer test-token", authHeader[0]);
-    }
-
     [Test]
     public async Task SendAsync_Sets_Managed_Identity_Authentication_Header()
     {
