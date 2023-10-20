@@ -1,55 +1,63 @@
-trigger: none
+trigger:
+  branches:
+    include:
+      - main
+      - feature/*
+
+pr:
+ - main
 
 pool:
-  vmImage: windows-latest
+  vmImage: ubuntu-latest
 
-variables:
-  major: '0'
-  minor: '2'
-  revision: $[counter(variables['minor'], 1)] 
-  nugetVersion: '$(major).$(minor).$(revision)'
-  
 stages:
 - stage: build
   displayName: Build
   jobs:
-  - job: Build
-    pool:
-      vmImage: windows-latest
-    steps:          
+    - job: Build
+      steps:
+      - checkout: self
+        fetchDepth: 0
+      - task: gitversion/setup@0
+        displayName: Install GitVersion
+        inputs:
+          versionSpec: '5.x'
+      - task: gitversion/execute@0
+        displayName: Determine GitVersion
+        inputs:
+          useConfigFile: true
+          configFilePath: $(Build.SourcesDirectory)/GitVersion.yml
+          targetPath: $(Build.SourcesDirectory)
       - task: DotNetCoreCLI@2
+        displayName: Dotnet Restore 
         inputs:
           command: "restore"
           projects: |
             **/*.csproj
           feedsToUse: "select"
           includeNuGetOrg: true
-        displayName: Dotnet Restore
-
       - task: DotNetCoreCLI@2
+        displayName: Build
         inputs:
           command: "test"
           projects: |
             **/*.csproj
-        displayName: Build
-
       - task: DotNetCoreCLI@2
+        displayName: Package 
         inputs:
           command: "pack"
           versioningScheme: byEnvVar
-          versionEnvVar: nugetVersion
+          versionEnvVar: NuGetVersion
           packDestination: $(Build.ArtifactStagingDirectory)/package
           arguments: "-o $(Build.ArtifactStagingDirectory)/package"
           projects: |
             **/*.csproj
-        displayName: Package 
-        
       - task: PublishBuildArtifacts@1
+        displayName: Publish Build Artifacts   
         inputs:
           PathtoPublish: '$(Build.ArtifactStagingDirectory)'
           ArtifactName: 'drop'
-          publishLocation: 'Container'
-        displayName: Publish Build Artifacts        
+          publishLocation: 'Container'     
 
 - stage: Deploy
   displayName: Deploy
@@ -59,9 +67,7 @@ stages:
         or(
            in(variables['Build.SourceBranch'], 'refs/heads/main'), 
            in(variables['Build.Reason'], 'Manual')
-        )  
-    pool:
-      vmImage: windows-latest 
+        )
     steps:
       - task: DownloadBuildArtifacts@0
         displayName: 'Download artifacts'
@@ -78,4 +84,3 @@ stages:
           packagesToPush: '$(System.ArtifactsDirectory)/drop/*.nupkg;!$(System.ArtifactsDirectory)/drop/*.symbols.nupkg'
           nuGetFeedType: 'external'
           publishFeedCredentials: 'ASOS nuget.org feed'
-
