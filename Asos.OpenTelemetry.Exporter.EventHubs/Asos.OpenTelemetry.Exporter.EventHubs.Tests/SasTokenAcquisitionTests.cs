@@ -19,7 +19,7 @@ public class SasTokenAcquisitionTests
             {AccessKey = "test", KeyName = "Sender", EventHubFqdn = "https://my-resource"});
 
         var expectedExpiry = new DateTime(2021, 06, 22, 13, 30, 00);
-        Assert.AreEqual(expectedExpiry, accessToken.ExpiresOn.DateTime);
+        Assert.That(expectedExpiry, Is.EqualTo(accessToken.ExpiresOn.DateTime));
     }
 
     [Test]
@@ -33,9 +33,8 @@ public class SasTokenAcquisitionTests
         var accessToken = tokenAcquisition.GetToken(new EventHubOptions
             {AccessKey = "test", KeyName = "Sender", EventHubFqdn = "https://my-resource", AuthenticationMode = AuthenticationMode.SasKey});
 
-        var expected =
-            "sr=https%3A%2F%2Fmy-resource&sig=9GN48obx4qmr8AnCbslsNx8nij25uqayZnK7Aur%2FjjQ%3D&se=1624368600&skn=Sender";
-        Assert.AreEqual(expected, accessToken.Token);
+        var expected = "sr=https%3A%2F%2Fmy-resource&sig=9GN48obx4qmr8AnCbslsNx8nij25uqayZnK7Aur%2FjjQ%3D&se=1624368600&skn=Sender";
+        Assert.That(expected, Is.EqualTo(accessToken.Token));
     }
     
     [Test]
@@ -49,8 +48,7 @@ public class SasTokenAcquisitionTests
         var accessToken = await tokenAcquisition.GetTokenAsync(new EventHubOptions
             {AccessKey = "test", KeyName = "Sender", EventHubFqdn = "https://my-resource"});
 
-        var expected =
-            "sr=https%3A%2F%2Fmy-resource&sig=9GN48obx4qmr8AnCbslsNx8nij25uqayZnK7Aur%2FjjQ%3D&se=1624368600&skn=Sender";
-        Assert.AreEqual(expected, accessToken.Token);
+        var expected = "sr=https%3A%2F%2Fmy-resource&sig=9GN48obx4qmr8AnCbslsNx8nij25uqayZnK7Aur%2FjjQ%3D&se=1624368600&skn=Sender";
+        Assert.That(expected, Is.EqualTo(accessToken.Token));
     }
 }

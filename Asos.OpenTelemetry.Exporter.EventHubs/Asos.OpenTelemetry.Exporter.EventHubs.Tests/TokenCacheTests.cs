@@ -32,7 +32,7 @@ public class TokenCacheTests
 
         var result = await _tokenCache.GetTokenAsync();
 
-        Assert.AreEqual("newtoken", result);
+        Assert.That("newtoken", Is.EqualTo(result));
     }
 
     [TestCase(-10)]
@@ -48,7 +48,7 @@ public class TokenCacheTests
 
         var result = await _tokenCache.GetTokenAsync();
 
-        Assert.AreEqual(NewToken, result);
+        Assert.That(NewToken, Is.EqualTo(result));
     }
     
     [Test]
@@ -63,6 +63,6 @@ public class TokenCacheTests
         
         var result = await _tokenCache.GetTokenAsync();
 
-        Assert.AreEqual("token-from-cache", result);
+        Assert.That("token-from-cache", Is.EqualTo(result));
     }
 }

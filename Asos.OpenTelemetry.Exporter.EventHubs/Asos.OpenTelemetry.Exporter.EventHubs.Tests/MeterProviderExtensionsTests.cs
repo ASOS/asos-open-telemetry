@@ -22,6 +22,6 @@ public class MeterProviderExtensionsTests
         var builder = Sdk.CreateMeterProviderBuilder()
             .AddOtlpEventHubExporter(eventHubOptions);
 
-        Assert.IsNotNull(builder);
+        Assert.That(builder, Is.Not.Null);
     }
 }

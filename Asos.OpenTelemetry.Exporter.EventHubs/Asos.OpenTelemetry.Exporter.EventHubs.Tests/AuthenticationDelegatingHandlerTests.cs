@@ -29,7 +29,7 @@ public class AuthenticationDelegatingHandlerTests
 
         var authHeader = MakeRequestAndGetAuthHeaders(httpClient);
         
-        Assert.AreEqual(expected, authHeader[0]);
+        Assert.That(expected, Is.EqualTo(authHeader[0]));
     }
     
     [Test]
@@ -48,7 +48,7 @@ public class AuthenticationDelegatingHandlerTests
         
         var authHeader = await MakeAsyncRequestAndGetAuthHeaders(httpClient);
         
-        Assert.AreEqual("Bearer test-token", authHeader[0]);
+        Assert.That("Bearer test-token", Is.EqualTo(authHeader[0]));
     }
     
     private List<string> MakeRequestAndGetAuthHeaders(HttpClient httpClient)
