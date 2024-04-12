@@ -12,7 +12,7 @@ public class TokenResolverTests
         var provider = TokenResolver.ResolveTokenProvider(new EventHubOptions
             {AuthenticationMode = AuthenticationMode.SasKey});
 
-        Assert.IsInstanceOf<SasTokenAcquisition>(provider);
+        Assert.That(provider, Is.InstanceOf<SasTokenAcquisition>());
     }
 
     [Test]
@@ -21,7 +21,7 @@ public class TokenResolverTests
         var provider = TokenResolver.ResolveTokenProvider(new EventHubOptions
             {AuthenticationMode = AuthenticationMode.ManagedIdentity});
 
-        Assert.IsInstanceOf<JwtTokenAcquisition>(provider);
+        Assert.That(provider, Is.InstanceOf<JwtTokenAcquisition>());
     }
 
     [Test]
