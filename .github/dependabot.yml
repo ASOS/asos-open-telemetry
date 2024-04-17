@@ -1,0 +1,21 @@
+version: 2
+registries:
+  nuget:
+    type: nuget-feed
+    url: https://api.nuget.org/v3/index.json
+  
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/Asos.OpenTelemetry.Exporter.EventHubs"
+    registries:
+      - nuget
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "Europe/London"
+    groups:
+      nuget:
+        patterns:
+          - "*"
+    ignore:
+      - dependency-name: "Moq"
