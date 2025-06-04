@@ -8,8 +8,18 @@ using OpenTelemetry.Trace;
 
 namespace Asos.OpenTelemetry.AspNetCore.Sampling;
 
+/// <summary>
+/// Extensions for configuring OpenTelemetry with custom sampling for Azure Monitor trace exporter.
+/// </summary>
 public static class OpenTelemetryExtensions
 {
+    /// <summary>
+    /// Configures the OpenTelemetry TracerProviderBuilder to use a custom sampling strategy for Azure Monitor trace exporter.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    // ReSharper disable once MemberCanBePrivate.Global
     public static TracerProviderBuilder AddCustomSamplingAzureMonitorTraceExporter(
         this TracerProviderBuilder builder)
     {
@@ -27,7 +37,12 @@ public static class OpenTelemetryExtensions
         });
     }
     
-    public static void ConfigureOpenTelemetry(this WebApplicationBuilder builder, Action<AzureMonitorOptions> configureOptions)
+    /// <summary>
+    /// Extension method to configure OpenTelemetry with custom sampling for Azure Monitor trace exporter.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="configureOptions"></param>
+    public static void ConfigureOpenTelemetryCustomSampling(this WebApplicationBuilder builder, Action<AzureMonitorOptions> configureOptions)
     {
         builder.Services.AddSingleton<RouteSamplingOptions>()
             .Configure<RouteSamplingOptions>(builder.Configuration.GetSection("OpenTelemetry:Sampling"));

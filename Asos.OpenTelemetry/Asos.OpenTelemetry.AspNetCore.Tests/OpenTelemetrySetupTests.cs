@@ -18,7 +18,7 @@ public class OpenTelemetrySetupTests
         
         builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         
-        builder.ConfigureOpenTelemetry(options =>
+        builder.ConfigureOpenTelemetryCustomSampling(options =>
         {
             options.SamplingRatio = 0.5f;
             options.ConnectionString = "InstrumentationKey=12345-12345-12345-12345";

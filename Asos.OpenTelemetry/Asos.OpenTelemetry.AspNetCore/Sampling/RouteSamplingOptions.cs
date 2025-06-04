@@ -1,5 +1,8 @@
 namespace Asos.OpenTelemetry.AspNetCore.Sampling;
 
+/// <summary>
+/// Defines options for route-based sampling in OpenTelemetry.
+/// </summary>
 public class RouteSamplingOptions
 {
     /// <summary>

@@ -81,7 +81,7 @@ public class ConfigurableRouteSamplerTests
     [Test]
     public void ShouldSample_NullHttpContext()
     {
-        _httpContextAccessor.HttpContext.Returns((HttpContext)null);
+        _httpContextAccessor.HttpContext.Returns((HttpContext)null!);
 
         var sampler = new ConfigurableRouteSampler(_options, _httpContextAccessor);
         var result = sampler.ShouldSample(default);

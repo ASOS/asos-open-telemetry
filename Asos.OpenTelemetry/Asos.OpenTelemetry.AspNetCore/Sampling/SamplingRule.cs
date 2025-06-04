@@ -23,6 +23,9 @@ public class SamplingRule
     /// </summary>
     public double Rate { get; set; }
     
+    /// <summary>
+    /// Compiled regular expression for the route pattern, used by the sampling processor.
+    /// </summary>
     [JsonIgnore]
     public Regex? CompiledPattern { get; set; }
 }

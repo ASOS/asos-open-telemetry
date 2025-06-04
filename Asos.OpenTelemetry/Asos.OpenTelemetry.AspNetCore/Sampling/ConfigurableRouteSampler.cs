@@ -23,6 +23,14 @@ public class ConfigurableRouteSampler : Sampler
         _httpContextAccessor = httpContextAccessor;
     }
     
+    /// <summary>
+    /// Custom sampling logic that determines whether a trace should be sampled based on the HTTP request's route and method.
+    ///
+    /// This will check the current HTTP context's request path and method against the configured sampling rules, and if
+    /// it matches a rule, it will return a sampling decision based on the rate specified in that rule.
+    /// </summary>
+    /// <param name="parameters">A <see cref="SamplingParameters"/> instance</param>
+    /// <returns>A <see cref="SamplingResult"/></returns>
     public override SamplingResult ShouldSample(in SamplingParameters parameters)
     {
         var httpContext = _httpContextAccessor.HttpContext;
