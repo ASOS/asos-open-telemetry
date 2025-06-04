@@ -1,55 +1,69 @@
-# Open Telemetry Export for Event Hubs
+# Open Telemetry extensions for Asp Net Core
 
-A library for sending OTLP data to an Azure Event Hubs endpoint. 
+A library for configuring OpenTelemetry in ASP.NET Core applications,
 
 ## What's it for?
 
-This library is specifically to simplify in process scenarios where agents or other collector patterns aren't an option 
-and you'd like the process being instrumented to be responsible for transmitting data to the target
+This library is intended to help modify the default behaviour of OpenTelemetry in ASP.NET Core applications, allowing
+some customisation of the way data is exported, sampled and other behaviours.
 
 ## How does it work?
 
-This is a bit of syntantic sugar to help with bootstrapping the Event Hubs endpoint and setting up authentication. The exporter
-option we expose here `AddOtlpEventHubExporter` builds directly onto `AddOtlpExporter` and sets up the necessary configuration. 
-
-In particular, that's setting the protocol to `HttpProtobuf` and the `HttpClientFactory` to take an instance that handles tokens and 
-token refreshes. 
-
-The library will support either SAS key authentication or Managed Identity, and sets up the `HttpClient` to transmit the appropriate
-authorization header. 
-   
-## Example configurations
-
-Create an `EventHubOptions` object and choose from either SAS key authentication or managed identity. When configuring your services, you
-now have an extension named `AddOtlpEventHubExporter` that you can pass the options to
-
+Extension methods are available that allow you to change the behaviour of OpenTelemetry via the WebApplicationBuilder
 
 ```csharp
-var eventHubOptions = new EventHubOptions
-{
-    AuthenticationMode = AuthenticationMode.SasKey,
-    KeyName = "the-name-of-the-access-key"    
-    AccessKey = "the-event-hub-access-key",
-    EventHubFqdn = "fully-qualified-target-eventhub-uri"
-};
-
-OR
-
-var eventHubOptions = new EventHubOptions
-{
-    AuthenticationMode = AuthenticationMode.ManagedIdentity,
-    EventHubFqdn = "fully-qualified-target-eventhub-uri"
-};
-
-services.AddOpenTelemetryMetrics(builder => builder
-    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("DemoService"))
-    .AddAspNetCoreInstrumentation()
-    .AddMeter("MeterName")
-    .AddOtlpEventHubExporter(eventHubOptions));
+builder.ConfigureOpenTelemetryCustomSampling(
+    options =>
+    {
+        // whatever options you want to set
+    });
 ```
 
-## Permissions
+The `ConfigureOpenTelemetryCustomSampling` method allows you to set up custom sampling rules, which can be used to control
+the sampling rate of different routes or HTTP methods in your application.
 
-When running as a SAS key, the permissions are available from the access key you've used. However, when running in ManagedIdentity, you'll need to 
-grant the [Azure Event Hubs Data Sender](https://learn.microsoft.com/en-us/azure/event-hubs/authenticate-application) role to the identity you 
-want to access the Event Hub endpoint.
+To define the rules, create a section in your `appsettings.json` file under the `OpenTelemetry:Sampling` path.
+
+```json
+{
+  "OpenTelemetry": {
+    "Sampling": {
+      "DefaultRate": 0.05,
+      "SamplingRules": [
+        {
+          "RoutePattern": "^/api/customers/\\d+$",
+          "Method": "GET",
+          "Rate": 1.0
+        },
+        {
+          "RoutePattern": "^/api/orders$",
+          "Method": "POST",
+          "Rate": 0.25
+        },
+        {
+          "RoutePattern": "^/health$",
+          "Method": "GET",
+          "Rate": 0.0
+        }
+      ]
+    }
+  }
+}
+```
+
+By doing so, you can control the sampling rate for specific routes and HTTP methods in your ASP.NET Core application.
+
+Be aware that different sampling rates can break the consistency of your traces, so use this feature with caution. It's a good
+option when you don't call into external APIs and just call your own dependencies, as it can help reduce the amount of data
+you produce
+
+For example, if you have a GET endpoint that only calls a database and no other services, is successful a very high percentage of 
+time and you don't need to see every single request, you can set the sampling rate to 0.05 (5%) for that endpoint.
+
+You might have another endpoint that performs a POST operation and calls into an external API, which is less reliable and you want to see
+every request, so you can set the sampling rate to 1.0 (100%) for that endpoint.
+
+
+
+
+
