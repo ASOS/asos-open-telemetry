@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <Authors>asos</Authors>
+        <Product>Asos.OpenTelemetry.AspNetCore</Product>
+        <PackageId>Asos.OpenTelemetry.AspNetCore</PackageId>
+        <Description>OpenTelemetry functionality and extensions for use in AspNetCore applications</Description>
+        <TargetFramework>net6.0</TargetFramework>
+    </PropertyGroup>
+    <ItemGroup>
+      <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.2.0" />
+    </ItemGroup>
+</Project>
