@@ -10,15 +10,15 @@
         <PackageId>Asos.OpenTelemetry.AspNetCore</PackageId>
         <Description>OpenTelemetry functionality and extensions for use in AspNetCore applications</Description>
         <TargetFramework>net8.0</TargetFramework>
+        <PackageIcon>otel_icon.png</PackageIcon>
+        <PackageIconUrl />        
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
     <ItemGroup>
         <None Include="README.md" Pack="true" PackagePath="." />
-        <None Include="../../otel_icon.png">
-            <Pack>True</Pack>
-        </None>
+        <None Include="otel_icon.png" Pack="true" PackagePath="." />
     </ItemGroup>    
     <ItemGroup>
       <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.2.0" />
