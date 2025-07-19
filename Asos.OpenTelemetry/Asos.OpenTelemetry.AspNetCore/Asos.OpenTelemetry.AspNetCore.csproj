@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PackageOutputPath>./nupkg</PackageOutputPath>        
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <Authors>asos</Authors>
+        <Product>Asos.OpenTelemetry.AspNetCore</Product>
+        <PackageId>Asos.OpenTelemetry.AspNetCore</PackageId>
+        <Description>OpenTelemetry functionality and extensions for use in AspNetCore applications</Description>
+        <TargetFramework>net8.0</TargetFramework>
+        <PackageIcon>otel_icon.png</PackageIcon>
+        <PackageIconUrl />        
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PreserveCompilationContext>true</PreserveCompilationContext>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="." />
+        <None Include="otel_icon.png" Pack="true" PackagePath="." />
+    </ItemGroup>    
+    <ItemGroup>
+      <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.2.0" />
+    </ItemGroup>
+</Project>
