@@ -6,7 +6,7 @@ namespace Asos.OpenTelemetry.AspNetCore.Sampling;
 /// <summary>
 /// A class representing a sampling rule for route-based sampling.
 /// </summary>
-public class SamplingRule
+public class RouteSamplingRule
 {
     /// <summary>
     /// A pattern that matches the route. This can be a regular expression.

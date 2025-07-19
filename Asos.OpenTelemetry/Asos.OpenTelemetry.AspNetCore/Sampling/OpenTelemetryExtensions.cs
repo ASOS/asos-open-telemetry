@@ -1,4 +1,6 @@
 ﻿using System.Text.RegularExpressions;
+using Asos.OpenTelemetry.AspNetCore.Sampling.Head;
+using Asos.OpenTelemetry.AspNetCore.Sampling.Tail;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -32,7 +34,7 @@ public static class OpenTelemetryExtensions
 
         return deferredBuilder.Configure((sp, providerBuilder) =>
         {
-            var sampler = sp.GetRequiredService<ConfigurableRouteSampler>();
+            var sampler = sp.GetRequiredService<RouteRuleSampler>();
             providerBuilder.SetSampler(sampler);
         });
     }
@@ -47,22 +49,37 @@ public static class OpenTelemetryExtensions
         builder.Services.AddSingleton<RouteSamplingOptions>()
             .Configure<RouteSamplingOptions>(builder.Configuration.GetSection("OpenTelemetry:Sampling"));
 
-        builder.Services.AddSingleton<ConfigurableRouteSampler>(sp =>
+        builder.Services.AddSingleton<RouteRuleSampler>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<RouteSamplingOptions>>().Value;
-            foreach (var rule in options.SamplingRules)
+            foreach (var rule in options.RouteSamplingRules)
             {
                 rule.CompiledPattern = new Regex(rule.RoutePattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
             }
             var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
-            return new ConfigurableRouteSampler(options, httpContextAccessor);
+            return new RouteRuleSampler(options, httpContextAccessor);
+        });
+        
+        // Register the tail-based sampling processor
+        builder.Services.AddSingleton<TailBasedSamplingProcessor>(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<TailSamplingOptions>>().Value;
+            foreach (var rule in options.RouteSamplingRules)
+            {
+                rule.CompiledPattern = new Regex(rule.RoutePattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            }
+        
+            var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+            return new TailBasedSamplingProcessor(options, httpContextAccessor);
         });
         
         builder.Services.AddOpenTelemetry().UseAzureMonitor(configureOptions);
 
         builder.Services.ConfigureOpenTelemetryTracerProvider(providerBuilder =>
         {
-            providerBuilder.AddCustomSamplingAzureMonitorTraceExporter();
+            providerBuilder
+                .AddCustomSamplingAzureMonitorTraceExporter()
+                .AddProcessor(sp => sp.GetRequiredService<TailBasedSamplingProcessor>());
         });               
     }
 }
