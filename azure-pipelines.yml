@@ -77,8 +77,9 @@ stages:
           artifactName: 'drop'
           itemPattern: 
           downloadPath: '$(System.ArtifactsDirectory)'   
-      - task: NuGetCommand@2
-        displayName: Publish package to nuget.org using ASOS organisation account
+          
+      - task: DotNetCoreCLI@2
+        displayName: 'Push NuGet packages to nuget.org'
         inputs:
           command: 'push'
           packagesToPush: '$(System.ArtifactsDirectory)/drop/*.nupkg;!$(System.ArtifactsDirectory)/drop/*.symbols.nupkg'
