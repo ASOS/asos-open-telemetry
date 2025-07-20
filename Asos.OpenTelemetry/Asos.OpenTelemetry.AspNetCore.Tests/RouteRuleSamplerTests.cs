@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 using Asos.OpenTelemetry.AspNetCore.Sampling;
 using Asos.OpenTelemetry.AspNetCore.Sampling.Head;
 using Microsoft.AspNetCore.Http;
@@ -28,7 +27,6 @@ public class RouteRuleSamplerTests
                     RoutePattern = "^/api/test$",
                     Method = "GET",
                     Rate = 1.0,
-                    CompiledPattern = new Regex("^/api/test$", RegexOptions.IgnoreCase | RegexOptions.Compiled)
                 }
             ]
         };

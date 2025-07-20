@@ -180,7 +180,6 @@ public class SamplingPipelineIntegrationTests
         {
             Method = "GET",
             RoutePattern = @"^/api/health.*",
-            CompiledPattern = new System.Text.RegularExpressions.Regex(@"^/api/health.*"),
             Rate = 0.0 // Never sample health checks
         });
 
@@ -188,10 +187,9 @@ public class SamplingPipelineIntegrationTests
         {
             Method = "POST",
             RoutePattern = @"^/api/orders.*",
-            CompiledPattern = new System.Text.RegularExpressions.Regex(@"^/api/orders.*"),
             Rate = 1.0 // Always sample orders
         });
-
+        
         var testRequests = new[]
         {
             CreateTestRequest("/api/health", "GET", 200),
@@ -226,7 +224,6 @@ public class SamplingPipelineIntegrationTests
         {
             Method = "GET",
             RoutePattern = @"^/api/health.*",
-            CompiledPattern = new System.Text.RegularExpressions.Regex(@"^/api/health.*"),
             Rate = 0.0 // Never sample health checks normally
         });
 

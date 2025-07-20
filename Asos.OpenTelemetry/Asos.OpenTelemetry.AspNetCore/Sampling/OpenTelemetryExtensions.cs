@@ -1,9 +1,8 @@
-﻿using System.Text.RegularExpressions;
-using Asos.OpenTelemetry.AspNetCore.Sampling.Head;
+﻿using Asos.OpenTelemetry.AspNetCore.Sampling.Head;
 using Asos.OpenTelemetry.AspNetCore.Sampling.Tail;
-using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Trace;
@@ -22,7 +21,7 @@ public static class OpenTelemetryExtensions
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
     // ReSharper disable once MemberCanBePrivate.Global
-    public static TracerProviderBuilder AddCustomSamplingAzureMonitorTraceExporter(
+    public static TracerProviderBuilder AddCustomSamplingTraceExporter(
         this TracerProviderBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -40,22 +39,38 @@ public static class OpenTelemetryExtensions
     }
     
     /// <summary>
-    /// Extension method to configure OpenTelemetry with custom sampling for Azure Monitor trace exporter.
+    /// Extension method to configure OpenTelemetry with custom sampling for traces. Uses the configuration
+    /// for route-based sampling defined in the "OpenTelemetry:Sampling" section of the configuration.
     /// </summary>
-    /// <param name="builder"></param>
-    /// <param name="configureOptions"></param>
-    public static void ConfigureOpenTelemetryCustomSampling(this WebApplicationBuilder builder, Action<AzureMonitorOptions> configureOptions)
+    /// <param name="builder">A web application builder instance</param>
+    public static void AddOpenTelemetryCustomSampling(this WebApplicationBuilder builder)
     {
-        builder.Services.AddSingleton<RouteSamplingOptions>()
-            .Configure<RouteSamplingOptions>(builder.Configuration.GetSection("OpenTelemetry:Sampling"));
+        var routeSamplingOptions = new RouteSamplingOptions();
+        builder.Configuration
+            .GetSection("OpenTelemetry:Sampling")
+            .Bind(routeSamplingOptions);
+        
+        AddOpenTelemetryCustomSampling(builder, routeSamplingOptions);
+    }
+    
+    /// <summary>
+    /// Extension method to configure OpenTelemetry with custom sampling for traces. Uses the provided
+    /// configuration for route-based sampling.
+    /// </summary>
+    /// <param name="builder">A web application builder instance</param>
+    /// <param name="routeSamplingOptions">An instance of options to configure the sampler behaviour</param>
+    public static void AddOpenTelemetryCustomSampling(this WebApplicationBuilder builder, RouteSamplingOptions routeSamplingOptions)
+    {
+        builder.Services.Configure<RouteSamplingOptions>(options =>
+        {
+            options.RouteSamplingRules = routeSamplingOptions.RouteSamplingRules;
+            options.DefaultRate = routeSamplingOptions.DefaultRate;
+            options.RespectSamplingHeader = routeSamplingOptions.RespectSamplingHeader;
+        });
 
         builder.Services.AddSingleton<RouteRuleSampler>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<RouteSamplingOptions>>().Value;
-            foreach (var rule in options.RouteSamplingRules)
-            {
-                rule.CompiledPattern = new Regex(rule.RoutePattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            }
             var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
             return new RouteRuleSampler(options, httpContextAccessor);
         });
@@ -64,23 +79,15 @@ public static class OpenTelemetryExtensions
         builder.Services.AddSingleton<TailBasedSamplingProcessor>(sp =>
         {
             var options = sp.GetRequiredService<IOptions<TailSamplingOptions>>().Value;
-            foreach (var rule in options.RouteSamplingRules)
-            {
-                rule.CompiledPattern = new Regex(rule.RoutePattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            }
-        
             var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
             return new TailBasedSamplingProcessor(options, httpContextAccessor);
         });
         
-        builder.Services.AddOpenTelemetry().UseAzureMonitor(configureOptions);
-
         builder.Services.ConfigureOpenTelemetryTracerProvider(providerBuilder =>
         {
             providerBuilder
-                .AddCustomSamplingAzureMonitorTraceExporter()
+                .AddCustomSamplingTraceExporter()
                 .AddProcessor(sp => sp.GetRequiredService<TailBasedSamplingProcessor>());
-        });               
+        });         
     }
 }
-

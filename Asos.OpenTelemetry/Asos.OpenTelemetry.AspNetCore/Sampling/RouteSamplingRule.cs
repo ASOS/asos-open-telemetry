@@ -8,11 +8,21 @@ namespace Asos.OpenTelemetry.AspNetCore.Sampling;
 /// </summary>
 public class RouteSamplingRule
 {
+    private string _routePattern = string.Empty;
+
     /// <summary>
     /// A pattern that matches the route. This can be a regular expression.
     /// </summary>
-    public string RoutePattern { get; set; } = string.Empty;
-    
+    public string RoutePattern
+    {
+        get => _routePattern;
+        set
+        {
+            _routePattern = value;
+            CompilePattern(); 
+        }
+    }
+
     /// <summary>
     /// The HTTP method (e.g., GET, POST) to which this rule applies.
     /// </summary>
@@ -27,5 +37,23 @@ public class RouteSamplingRule
     /// Compiled regular expression for the route pattern, used by the sampling processor.
     /// </summary>
     [JsonIgnore]
-    public Regex? CompiledPattern { get; set; }
+    public Regex? CompiledPattern { get; private set; }
+    
+    private void CompilePattern()
+    {
+        if (string.IsNullOrWhiteSpace(RoutePattern))
+        {
+            CompiledPattern = null;
+            return;
+        }
+
+        try
+        {
+            CompiledPattern = new Regex(RoutePattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        }
+        catch (ArgumentException ex)
+        {
+            throw new InvalidOperationException($"Invalid route pattern: {RoutePattern}", ex);
+        }
+    }
 }

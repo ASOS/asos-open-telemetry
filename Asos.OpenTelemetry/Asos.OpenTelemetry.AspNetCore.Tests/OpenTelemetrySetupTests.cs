@@ -19,16 +19,9 @@ public class OpenTelemetrySetupTests
         
         builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         
-        builder.ConfigureOpenTelemetryCustomSampling(options =>
-        {
-            options.SamplingRatio = 0.5f;
-            options.ConnectionString = "InstrumentationKey=12345-12345-12345-12345";
-        });
+        builder.AddOpenTelemetryCustomSampling();
 
         var provider = builder.Services.BuildServiceProvider();
-        
-        var tracerProvider = provider.GetRequiredService<TracerProvider>();
-        Assert.That(tracerProvider, Is.Not.Null);
         
         // Assert RouteSamplingOptions are bound correctly
         var routeSamplingOptions = provider.GetRequiredService<IOptions<RouteSamplingOptions>>().Value;
