@@ -15,7 +15,7 @@ public class OpenTelemetrySetupTests
     public void ConfigureOpenTelemetry_RegistersRequiredServices()
     {
         var builder = WebApplication.CreateBuilder();
-        builder.Configuration["OpenTelemetry:Sampling:SamplingRules:0:RoutePattern"] = "/api/test";
+        builder.Configuration["OpenTelemetry:Sampling:RouteSamplingRules:0:RoutePattern"] = "/api/test";
         
         builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         
