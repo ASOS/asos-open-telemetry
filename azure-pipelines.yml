@@ -78,8 +78,13 @@ stages:
           itemPattern: 
           downloadPath: '$(System.ArtifactsDirectory)'   
           
-      - task: DotNetCoreCLI@2
-        displayName: 'Push NuGet packages to nuget.org'
+      - task: NuGetToolInstaller@1
+        displayName: 'Install NuGet'
+        inputs:
+          versionSpec: '>=5.0.0'
+
+      - task: NuGetCommand@2
+        displayName: 'Publish package to nuget.org using ASOS organisation account'
         inputs:
           command: 'push'
           packagesToPush: '$(System.ArtifactsDirectory)/drop/*.nupkg;!$(System.ArtifactsDirectory)/drop/*.symbols.nupkg'
