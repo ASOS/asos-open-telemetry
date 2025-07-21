@@ -61,6 +61,8 @@ public static class OpenTelemetryExtensions
     /// <param name="routeSamplingOptions">An instance of options to configure the sampler behaviour</param>
     public static void AddOpenTelemetryCustomSampling(this WebApplicationBuilder builder, RouteSamplingOptions routeSamplingOptions)
     {
+        builder.Services.AddHttpContextAccessor();
+        
         builder.Services.Configure<RouteSamplingOptions>(options =>
         {
             options.RouteSamplingRules = routeSamplingOptions.RouteSamplingRules;

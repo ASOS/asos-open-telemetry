@@ -70,20 +70,6 @@ public class TailSamplingOptions
     public TimeSpan SlowRequestThreshold { get; set; } = TimeSpan.FromSeconds(2);
     
     /// <summary>
-    /// Gets or sets the list of route-specific sampling rules that define custom sampling rates
-    /// for specific HTTP routes and methods. These rules allow fine-grained control over
-    /// sampling based on the request path and HTTP method patterns.
-    /// </summary>
-    public List<RouteSamplingRule> RouteSamplingRules { get; set; } = [];
-    
-    /// <summary>
-    /// Gets or sets the list of exception-specific sampling rules that define custom sampling rates
-    /// for different types of exceptions. This allows you to apply different sampling strategies
-    /// based on the specific exception types encountered in your application.
-    /// </summary>
-    public List<ExceptionRule> ExceptionRules { get; set; } = [];
-    
-    /// <summary>
     /// Gets or sets the list of HTTP status code-specific sampling rules that define custom sampling rates
     /// for specific status codes or ranges of status codes. These rules take precedence over
     /// the general category-based sampling rates (like ServerErrorSamplingRate).

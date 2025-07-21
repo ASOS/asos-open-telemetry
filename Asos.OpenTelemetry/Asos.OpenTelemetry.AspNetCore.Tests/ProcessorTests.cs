@@ -47,9 +47,7 @@ public class SamplingPipelineIntegrationTests
             ClientErrorSamplingRate = 0.5,
             SlowRequestSamplingRate = 0.8,
             SlowRequestThreshold = TimeSpan.FromSeconds(2),
-            RouteSamplingRules = new List<RouteSamplingRule>(),
             StatusCodeRules = new List<StatusCodeRule>(),
-            ExceptionRules = new List<ExceptionRule>()
         };
         
         // Create a test tracer provider with the actual implementation
@@ -82,9 +80,7 @@ public class SamplingPipelineIntegrationTests
         _exportedActivities.Clear();
         
         // Reset options to defaults
-        _options.RouteSamplingRules.Clear();
         _options.StatusCodeRules.Clear();
-        _options.ExceptionRules.Clear();
         _options.DefaultSamplingRate = 0.1;
         _options.DefaultExceptionSamplingRate = 1.0;
         _options.ServerErrorSamplingRate = 1.0;
@@ -173,60 +169,8 @@ public class SamplingPipelineIntegrationTests
     }
 
     [Test]
-    public void ShouldRespectRouteSamplingRules()
+    public void ShouldPrioritizeExceptions()
     {
-        // Arrange
-        _options.RouteSamplingRules.Add(new RouteSamplingRule
-        {
-            Method = "GET",
-            RoutePattern = @"^/api/health.*",
-            Rate = 0.0 // Never sample health checks
-        });
-
-        _options.RouteSamplingRules.Add(new RouteSamplingRule
-        {
-            Method = "POST",
-            RoutePattern = @"^/api/orders.*",
-            Rate = 1.0 // Always sample orders
-        });
-        
-        var testRequests = new[]
-        {
-            CreateTestRequest("/api/health", "GET", 200),
-            CreateTestRequest("/api/health/detailed", "GET", 200),
-            CreateTestRequest("/api/orders", "POST", 201),
-            CreateTestRequest("/api/orders/123", "POST", 201)
-        };
-
-        // Act
-        ProcessTestRequests(testRequests);
-
-        // Assert
-        var healthSpans = _exportedActivities
-            .Where(a => a.GetTagItem("http.target")?.ToString()?.StartsWith("/api/health") == true)
-            .ToList();
-
-        var orderSpans = _exportedActivities
-            .Where(a => a.GetTagItem("http.target")?.ToString()?.StartsWith("/api/orders") == true)
-            .ToList();
-
-        Assert.That(healthSpans.Count, Is.EqualTo(0), "Health checks should not be sampled");
-        Assert.That(orderSpans.Count, Is.EqualTo(2), "All order requests should be sampled");
-
-        TestContext.WriteLine($"Health spans: {healthSpans.Count}, Order spans: {orderSpans.Count}");
-    }
-
-    [Test]
-    public void ShouldPrioritizeExceptionsOverRouteRules()
-    {
-        // Arrange
-        _options.RouteSamplingRules.Add(new RouteSamplingRule
-        {
-            Method = "GET",
-            RoutePattern = @"^/api/health.*",
-            Rate = 0.0 // Never sample health checks normally
-        });
-
         var testRequest = CreateTestRequestWithException("/api/health/check", "GET", "InvalidOperationException");
 
         // Act
@@ -285,15 +229,8 @@ public class SamplingPipelineIntegrationTests
     }
 
     [Test]
-    public void ShouldHandleExceptionRules()
+    public void ShouldHandleExceptions()
     {
-        // Arrange
-        _options.ExceptionRules.Add(new ExceptionRule
-        {
-            ExceptionType = "ArgumentNullException",
-            SamplingRate = 0.0 // Don't sample argument null exceptions
-        });
-
         var testRequests = new[]
         {
             CreateTestRequestWithException("/api/test/exception", "GET", "ArgumentNullException"),
@@ -312,7 +249,7 @@ public class SamplingPipelineIntegrationTests
             .Where(a => a.GetTagItem("exception.type")?.ToString() == "InvalidOperationException")
             .ToList();
 
-        Assert.That(argumentNullSpans.Count, Is.EqualTo(0), "ArgumentNullException should not be sampled");
+        Assert.That(argumentNullSpans.Count, Is.EqualTo(1), "ArgumentNullException should be sampled");
         Assert.That(invalidOpSpans.Count, Is.EqualTo(1), "InvalidOperationException should be sampled");
 
         TestContext.WriteLine($"ArgumentNull spans: {argumentNullSpans.Count}, InvalidOp spans: {invalidOpSpans.Count}");

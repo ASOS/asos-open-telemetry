@@ -67,7 +67,7 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
         }
 
         // Make tail-based sampling decision
-        var shouldSample = ShouldSampleBasedOnOutcome(activity, pendingSpan);
+        var shouldSample = ShouldSampleBasedOnOutcome(activity);
         
         if (!shouldSample)
         {
@@ -80,12 +80,12 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
         base.OnEnd(activity);
     }
 
-    private bool ShouldSampleBasedOnOutcome(Activity activity, PendingSpan pendingSpan)
+    private bool ShouldSampleBasedOnOutcome(Activity activity)
     {
         // Check for exceptions first (highest priority)
         if (HasException(activity))
         {
-            return ShouldSampleForException(activity);
+            return ShouldSample(_options.DefaultExceptionSamplingRate);
         }
 
         // Check for slow requests (high priority for performance monitoring)
@@ -100,26 +100,7 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
         {
             return ShouldSampleForDependencyFailure();
         }
-
-        // Check route-based sampling rules (before general HTTP status code handling)
-        var httpContext = pendingSpan.HttpContext;
-        var route = httpContext?.Request.Path;
-        var method = httpContext?.Request.Method;
         
-        if (!string.IsNullOrEmpty(route?.Value) && !string.IsNullOrEmpty(method))
-        {
-            var routeRule = _options.RouteSamplingRules
-                .FirstOrDefault(r =>
-                    string.Equals(r.Method, method, StringComparison.OrdinalIgnoreCase) &&
-                    r.CompiledPattern?.IsMatch(route) == true
-                );
-            
-            if (routeRule != null)
-            {
-                return ShouldSample(routeRule.Rate);
-            }
-        }
-
         // Check HTTP status codes (after route rules)
         if (TryGetHttpStatusCode(activity, out var statusCode))
         {
@@ -135,24 +116,6 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
         return activity.GetTagItem("exception.type") != null ||
                activity.GetTagItem("exception.message") != null ||
                activity.Status == ActivityStatusCode.Error;
-    }
-
-    private bool ShouldSampleForException(Activity activity)
-    {
-        var exceptionType = activity.GetTagItem("exception.type")?.ToString();
-        
-        // Check for specific exception rules
-        if (string.IsNullOrEmpty(exceptionType))
-            return ShouldSample(_options.DefaultExceptionSamplingRate);
-        
-        var rule = _options.ExceptionRules
-            .FirstOrDefault(r => r.ExceptionType.Equals(exceptionType, StringComparison.OrdinalIgnoreCase));
-            
-        if (rule != null)
-            return ShouldSample(rule.SamplingRate);
-
-        // Default exception sampling rate
-        return ShouldSample(_options.DefaultExceptionSamplingRate);
     }
 
     private bool TryGetHttpStatusCode(Activity activity, out int statusCode)
