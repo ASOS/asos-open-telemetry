@@ -5,6 +5,8 @@ namespace Asos.OpenTelemetry.AspNetCore.Sampling.Head;
 /// </summary>
 public class RouteSamplingOptions
 {
+    private double _defaultRate = 0.05;
+
     /// <summary>
     /// A list of sampling rules that define the sampling rate for specific routes.
     /// </summary>
@@ -13,7 +15,16 @@ public class RouteSamplingOptions
     /// <summary>
     /// The default rate for sampling if no rules match.
     /// </summary>
-    public double DefaultRate { get; set; } = 0.05;
+    public double DefaultRate 
+    { 
+        get => _defaultRate;
+        set
+        {
+            if (value is < 0.0 or > 1.0)
+                throw new ArgumentException("Sample rate must be between 0.0 and 1.0", nameof(value));
+            _defaultRate = value;
+        }
+    }
     
     /// <summary>
     /// If true, the sampling header will be respected when determining whether to sample a request. This

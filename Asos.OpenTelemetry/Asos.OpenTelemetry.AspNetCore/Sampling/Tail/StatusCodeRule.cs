@@ -7,6 +7,8 @@
 /// </summary>
 public class StatusCodeRule
 {
+    private double _samplingRate;
+
     /// <summary>
     /// Gets or sets a specific HTTP status code to match against.
     /// When set, this rule will apply to requests that result in exactly this status code.
@@ -27,5 +29,14 @@ public class StatusCodeRule
     /// A value of 1.0 means all spans with matching status codes will be sampled,
     /// while 0.0 means none will be sampled. Values between 0 and 1 enable probabilistic sampling.
     /// </summary>
-    public double SamplingRate { get; set; }
+    public double SamplingRate 
+    { 
+        get => _samplingRate;
+        set
+        {
+            if (value is < 0.0 or > 1.0)
+                throw new ArgumentException("Sample rate must be between 0.0 and 1.0", nameof(value));
+            _samplingRate = value;
+        }
+    }
 }

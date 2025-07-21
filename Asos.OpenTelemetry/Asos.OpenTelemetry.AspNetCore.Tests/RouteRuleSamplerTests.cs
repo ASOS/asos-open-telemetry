@@ -137,14 +137,12 @@ public class RouteRuleSamplerTests
     }
 
     [Test]
-    public void ShouldSample_InvalidSamplingRate()
+    public void ShouldThrowFor_InvalidSamplingRate()
     {
-        _options.DefaultRate = -1.0;
-
-        var sampler = new RouteRuleSampler(_options, _httpContextAccessor);
-        var result = sampler.ShouldSample(default);
-
-        Assert.That(result.Decision, Is.EqualTo(SamplingDecision.Drop));
+        Assert.Throws<ArgumentException>(() =>
+        {
+            _options.DefaultRate = -1.0;
+        });
     }
 
     [Test]

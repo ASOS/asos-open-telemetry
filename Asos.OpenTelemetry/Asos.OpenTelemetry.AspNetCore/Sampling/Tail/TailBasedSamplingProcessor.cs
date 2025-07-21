@@ -65,22 +65,28 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
             base.OnEnd(activity);
             return;
         }
-
-        // Make tail-based sampling decision
-        var shouldSample = ShouldSampleBasedOnOutcome(activity);
         
-        if (!shouldSample)
+        var decision = ShouldSampleBasedOnOutcome(activity);
+        if (!decision.ShouldSample)
         {
             // Mark the activity as not sampled by clearing the Sampled flag
             // This prevents exporters from exporting it
             activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+        }
+        else
+        {
+            // While this processor isn't specifically coupled to the application insights
+            // exporter, we set these tags to align with the expected format and set the 
+            // sampling rate that is captured if that the Azure Monitor exporter is utilised.
+            activity.SetTag("_MS.sampleRate", decision.SampleRate);
+            activity.SetTag("_MS.itemCount", decision.SampleRate == 0 ? 0 : 100.0 / decision.SampleRate);  
         }
 
         // Always forward to the next processor
         base.OnEnd(activity);
     }
 
-    private bool ShouldSampleBasedOnOutcome(Activity activity)
+    private SamplingDecisionResult ShouldSampleBasedOnOutcome(Activity activity)
     {
         // Check for exceptions first (highest priority)
         if (HasException(activity))
@@ -127,7 +133,7 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
         return int.TryParse(statusCodeTag, out statusCode);
     }
 
-    private bool ShouldSampleForHttpStatus(int statusCode)
+    private SamplingDecisionResult ShouldSampleForHttpStatus(int statusCode)
     {
         // Check for specific status code rules
         var rule = _options.StatusCodeRules
@@ -170,12 +176,12 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
                 errorType.Contains("connection", StringComparison.OrdinalIgnoreCase));
     }
 
-    private bool ShouldSampleForDependencyFailure()
+    private SamplingDecisionResult ShouldSampleForDependencyFailure()
     {
         return ShouldSample(_options.DependencyFailureSamplingRate);
     }
 
-    private bool ShouldSampleForSlowRequest()
+    private SamplingDecisionResult ShouldSampleForSlowRequest()
     {
         return ShouldSample(_options.SlowRequestSamplingRate);
     }
@@ -191,14 +197,23 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
     /// </summary>
     /// <param name="samplingRate">The sampling rate between 0.0 and 1.0</param>
     /// <returns>True if the item should be sampled, false otherwise</returns>
-    private static bool ShouldSample(double samplingRate)
+    private static SamplingDecisionResult ShouldSample(double samplingRate)
     {
-        return samplingRate switch
+        var decision = new SamplingDecisionResult() { SampleRate = samplingRate * 100 };
+        
+        switch (samplingRate)
         {
-            <= 0.0 => false,
-            >= 1.0 => true,
-            _ => Random.Shared.NextDouble() < samplingRate
-        };
+            case <= 0.0:
+                decision.ShouldSample = false;
+                return decision;
+            case >= 1.0:
+                decision.ShouldSample = true;
+                decision.SampleRate = 100;
+                return decision;
+            default:
+                decision.ShouldSample = Random.Shared.NextDouble() < samplingRate;
+                return decision;
+        }
     }
 
     /// <summary>
