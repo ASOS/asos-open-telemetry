@@ -15,6 +15,18 @@ using Microsoft.AspNetCore.Http;
 /// </summary>
 public class TailBasedSamplingProcessor : BaseProcessor<Activity>
 {
+    // Check for any error-related tags that indicate failure
+    private static readonly List<string> ErrorTags =
+    [
+        "error.type",
+        "error.message",
+        "exception.type",
+        "exception.message",
+        "db.error",
+        "messaging.error",
+        "rpc.error"
+    ];
+
     private readonly ConcurrentDictionary<string, PendingSpan> _pendingSpans = new();
     private readonly TailSamplingOptions _options;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -47,7 +59,7 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
             HttpContext = _httpContextAccessor.HttpContext,
             StartTime = DateTime.UtcNow
         };
-        
+
         _pendingSpans.TryAdd(activity.Id!, pendingSpan);
     }
 
@@ -65,7 +77,7 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
             base.OnEnd(activity);
             return;
         }
-        
+
         var decision = ShouldSampleBasedOnOutcome(activity);
         if (!decision.ShouldSample)
         {
@@ -79,7 +91,7 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
             // exporter, we set these tags to align with the expected format and set the 
             // sampling rate that is captured if that the Azure Monitor exporter is utilised.
             activity.SetTag("_MS.sampleRate", decision.SampleRate);
-            activity.SetTag("_MS.itemCount", decision.SampleRate == 0 ? 0 : 100.0 / decision.SampleRate);  
+            activity.SetTag("_MS.itemCount", decision.SampleRate == 0 ? 0 : 100.0 / decision.SampleRate);
         }
 
         // Always forward to the next processor
@@ -106,7 +118,7 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
         {
             return ShouldSampleForDependencyFailure();
         }
-        
+
         // Check HTTP status codes (after route rules)
         if (TryGetHttpStatusCode(activity, out var statusCode))
         {
@@ -128,21 +140,19 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
     {
         statusCode = 0;
         var statusCodeTag = activity.GetTagItem("http.status_code")?.ToString() ??
-                           activity.GetTagItem("http.response.status_code")?.ToString();
-        
+                            activity.GetTagItem("http.response.status_code")?.ToString();
+
         return int.TryParse(statusCodeTag, out statusCode);
     }
 
     private SamplingDecisionResult ShouldSampleForHttpStatus(int statusCode)
     {
-        // Check for specific status code rules
         var rule = _options.StatusCodeRules
             .FirstOrDefault(r => r.StatusCode == statusCode || IsInRange(statusCode, r.StatusCodeRange));
-        
+
         if (rule != null)
             return ShouldSample(rule.SamplingRate);
 
-        // Default rates based on status code categories
         return statusCode switch
         {
             >= 500 => ShouldSample(_options.ServerErrorSamplingRate),
@@ -155,25 +165,43 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
 
     private bool HasDependencyFailure(Activity activity)
     {
-        // Check for failed database calls
-        var dbError = activity.GetTagItem("db.error")?.ToString();
-        if (!string.IsNullOrEmpty(dbError))
-            return true;
-
-        // Check for failed HTTP client calls
-        if (activity.Kind == ActivityKind.Client)
+        // First check if this is an outbound dependency call (client activity)
+        // Server activities represent incoming requests, not dependencies
+        if (activity.Kind != ActivityKind.Client && activity.Kind != ActivityKind.Producer)
         {
-            if (TryGetHttpStatusCode(activity, out var statusCode))
-            {
-                return statusCode >= 500;
-            }
+            return false;
         }
 
-        // Check for timeout or connection errors
-        var errorType = activity.GetTagItem("error.type")?.ToString();
-        return !string.IsNullOrEmpty(errorType) && 
-               (errorType.Contains("timeout", StringComparison.OrdinalIgnoreCase) ||
-                errorType.Contains("connection", StringComparison.OrdinalIgnoreCase));
+        // Check activity status - this is the most reliable indicator of failure
+        if (activity.Status == ActivityStatusCode.Error)
+        {
+            return true;
+        }
+
+        if (ErrorTags.Select(errorTag => activity.GetTagItem(errorTag)?.ToString())
+            .Any(errorValue => !string.IsNullOrEmpty(errorValue)))
+        {
+            return true;
+        }
+
+        // Check HTTP status codes for client calls (any 4xx/5xx indicates failure)
+        if (TryGetHttpStatusCode(activity, out var statusCode))
+        {
+            return statusCode >= 400;
+        }
+
+        // Check for common failure indicators in activity names or tags
+        var activityName = activity.DisplayName?.ToLowerInvariant() ?? string.Empty;
+        var operationName = activity.GetTagItem("operation.name")?.ToString()?.ToLowerInvariant() ?? string.Empty;
+
+        var failureIndicators = new[]
+        {
+            "timeout", "failed", "error", "exception", "cancelled",
+            "abort", "disconnect", "unavailable", "rejected"
+        };
+
+        return failureIndicators.Any(indicator => activityName.Contains(indicator) 
+                                                  || operationName.Contains(indicator));
     }
 
     private SamplingDecisionResult ShouldSampleForDependencyFailure()
@@ -200,7 +228,7 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
     private static SamplingDecisionResult ShouldSample(double samplingRate)
     {
         var decision = new SamplingDecisionResult() { SampleRate = samplingRate * 100 };
-        
+
         switch (samplingRate)
         {
             case <= 0.0:
@@ -227,6 +255,7 @@ public class TailBasedSamplingProcessor : BaseProcessor<Activity>
         {
             _pendingSpans.Clear();
         }
+
         base.Dispose(disposing);
     }
 }
