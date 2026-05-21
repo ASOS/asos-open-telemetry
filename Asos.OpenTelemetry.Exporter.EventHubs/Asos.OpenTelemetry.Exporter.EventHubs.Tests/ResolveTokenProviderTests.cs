@@ -27,9 +27,11 @@ public class TokenResolverTests
     [Test]
     public void Throws_Exception_For_Unknown()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        TestDelegate act = () =>
         {
             TokenResolver.ResolveTokenProvider(new EventHubOptions {AuthenticationMode = (AuthenticationMode) 2});
-        });
+        };
+
+        Assert.Throws<ArgumentOutOfRangeException>(act);
     }
 }
