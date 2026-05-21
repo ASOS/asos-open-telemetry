@@ -18,7 +18,8 @@ public class EventHubOptionsTests
             EventHubFqdn = WellFormedTargetEndpoint
         };
 
-        Assert.Throws<InvalidOperationException>(() => options.Validate());
+        TestDelegate act = () => options.Validate();
+        Assert.Throws<InvalidOperationException>(act);
     }
     
     [Test]
@@ -32,7 +33,8 @@ public class EventHubOptionsTests
             EventHubFqdn = WellFormedTargetEndpoint
         };
 
-        Assert.Throws<InvalidOperationException>(() => options.Validate());
+        TestDelegate act = () => options.Validate();
+        Assert.Throws<InvalidOperationException>(act);
     }
     
     [Test]
@@ -46,7 +48,8 @@ public class EventHubOptionsTests
             EventHubFqdn = ""
         };
 
-        Assert.Throws<InvalidOperationException>(() => options.Validate());
+        TestDelegate act = () => options.Validate();
+        Assert.Throws<InvalidOperationException>(act);
     }
     
     [Test]
@@ -60,7 +63,8 @@ public class EventHubOptionsTests
             EventHubFqdn = "this-is-not-valid"
         };
         
-        Assert.Throws<InvalidOperationException>(() => options.Validate());
+        TestDelegate act = () => options.Validate();
+        Assert.Throws<InvalidOperationException>(act);
     }
     
     [Test]
@@ -86,7 +90,8 @@ public class EventHubOptionsTests
             EventHubFqdn = ""
         };
 
-        Assert.Throws<InvalidOperationException>(() => options.Validate());
+        TestDelegate act = () => options.Validate();
+        Assert.Throws<InvalidOperationException>(act);
     }
     
     [Test]
@@ -98,7 +103,8 @@ public class EventHubOptionsTests
             EventHubFqdn = "this-is-not-valid"
         };
 
-        Assert.Throws<InvalidOperationException>(() => options.Validate());
+        TestDelegate act = () => options.Validate();
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     
