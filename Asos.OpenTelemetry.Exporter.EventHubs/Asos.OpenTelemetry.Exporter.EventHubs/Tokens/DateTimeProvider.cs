@@ -5,7 +5,7 @@ internal static class SystemTime
     internal static Func<DateTime> UtcNow = () => DateTime.UtcNow;
 
     /// <summary>
-    ///     Set time to return when SystemTime.Now() is called.
+    ///     Set time to return when SystemTime.UtcNow() is called.
     /// </summary>
     internal static void SetDateTime(DateTime dateTimeNow)
     {
@@ -13,10 +13,10 @@ internal static class SystemTime
     }
 
     /// <summary>
-    ///     Resets SystemTime.Now() to return DateTime.Now.
+    ///     Resets SystemTime.UtcNow() to return DateTime.UtcNow.
     /// </summary>
     internal static void ResetDateTime()
     {
-        UtcNow = () => DateTime.Now;
+        UtcNow = () => DateTime.UtcNow;
     }
 }

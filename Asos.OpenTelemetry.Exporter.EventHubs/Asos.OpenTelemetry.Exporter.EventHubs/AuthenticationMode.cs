@@ -10,7 +10,7 @@ public enum AuthenticationMode
     /// </summary>
     SasKey = 0,
     /// <summary>
-    /// Managed Identity. Will used DefaultAzureCredential to acquire an access token scoped for
+    /// Managed Identity. Will use DefaultAzureCredential to acquire an access token scoped for
     /// event hubs resources and send as Bearer token
     /// </summary>
     ManagedIdentity = 1

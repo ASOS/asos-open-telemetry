@@ -6,7 +6,7 @@ namespace Asos.OpenTelemetry.Exporter.EventHubs;
 public class EventHubOptions
 {
     /// <summary>
-    /// The authentication mode to use when sending data to Event Hub. Can be either Share Access Signature,
+    /// The authentication mode to use when sending data to Event Hub. Can be either Shared Access Signature,
     /// or Managed Identity
     /// </summary>
     public AuthenticationMode AuthenticationMode { get; set; } = AuthenticationMode.SasKey;
@@ -22,7 +22,7 @@ public class EventHubOptions
     public string AccessKey { get; set; } = string.Empty;
 
     /// <summary>
-    ///     The fully qualified Uri of the event hub to send OLTP data to.  An event hub named MyEventHub on host
+    ///     The fully qualified Uri of the event hub to send OTLP data to.  An event hub named MyEventHub on host
     ///     event-hub-host-name would give a EventHubFqdn value of
     ///     https://event-hub-host-name.servicebus.windows.net/MyEventHub
     /// </summary>
